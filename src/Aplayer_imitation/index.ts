@@ -1,9 +1,10 @@
+import { teleportStyle } from '@/src/utils/sctipt';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import MusicPlayer from './components/MusicPlayer.vue';
 import { DEFAULT_AUDIOS } from './data/default-audios';
 import { usePlayerStore } from './stores/player';
-import { getDefaultSettings, validateSettings } from './utils/settings';
+import { getDefaultSettings, validateSettings, type PlayerSettings } from './utils/settings';
 
 /**
  * APlayer 管理器 - 单例模式
@@ -14,6 +15,7 @@ class APlayerManager {
   private playerApp: any = null;
   private container: JQuery<HTMLElement> | null = null;
   private piniaInstance: any = null;
+  private styleTeleport: { destroy: () => void } | null = null;
 
   private constructor() {
     this.bindGlobalEvents();
@@ -78,31 +80,17 @@ class APlayerManager {
    * 处理样式注入 - 注入到酒馆页面 <head>
    */
   private readonly handleStyleInjection = _.debounce(() => {
-    this.teleportStyle();
-  }, 150);
-
-  /**
-   * 将样式传送到酒馆页面的 <head> 中
-   */
-  private teleportStyle(): void {
-    // 避免重复注入
-    if ($(`head > div[script_id="${getScriptId()}"]`, window.parent.document).length) {
-      return;
-    }
-
-    $(`<div>`)
-      .attr('script_id', getScriptId())
-      .append($(`head > style`, document).clone())
-      .appendTo($('head', window.parent.document));
-
+    this.styleTeleport?.destroy();
+    this.styleTeleport = teleportStyle($('head', window.parent.document));
     console.log('[APlayer] 样式已注入到酒馆页面 <head>');
-  }
+  }, 150);
 
   /**
    * 从酒馆页面移除样式
    */
   private deteleportStyle(): void {
-    $(`head > div[script_id="${getScriptId()}"]`, window.parent.document).remove();
+    this.styleTeleport?.destroy();
+    this.styleTeleport = null;
   }
 
   /**
@@ -114,7 +102,7 @@ class APlayerManager {
         type: 'script',
         script_id: getScriptId(),
       });
-      const settings = APlayerUtils.processSettings(savedSettings);
+      const settings = processSettings(savedSettings);
       this.applySettingsToStore(settings);
       console.log('[APlayer] 已加载播放器设置:', settings);
     } catch (error) {
@@ -126,18 +114,14 @@ class APlayerManager {
   /**
    * 将设置应用到 Pinia store
    */
-  private applySettingsToStore(settings: any): void {
+  private applySettingsToStore(settings: PlayerSettings): void {
     if (!this.piniaInstance) {
       this.handleError('应用设置', 'Pinia 实例未初始化');
       return;
     }
 
     const store = usePlayerStore(this.piniaInstance);
-    if (store?.initFromSettings) {
-      store.initFromSettings(settings);
-    } else {
-      this.handleError('应用设置', 'Store 或 initFromSettings 方法不存在');
-    }
+    store.initFromSettings(settings);
   }
 
   /**
@@ -145,7 +129,8 @@ class APlayerManager {
    */
   private useDefaultSettings(): void {
     const defaultSettings = getDefaultSettings();
-    APlayerUtils.saveSettings(defaultSettings);
+    saveSettings(defaultSettings);
+    this.applySettingsToStore(defaultSettings);
   }
 
   /**
@@ -226,36 +211,22 @@ class APlayerManager {
 }
 
 /**
- * 工具函数集合
+ * 防抖保存设置
  */
-const APlayerUtils = {
-  /**
-   * 防抖设置保存
-   */
-  saveSettings: _.debounce((settings: any) => {
-    replaceVariables(settings, {
-      type: 'script',
-      script_id: getScriptId(),
-    });
-  }, 500),
+const saveSettings = _.debounce((settings: PlayerSettings) => {
+  replaceVariables(settings, {
+    type: 'script',
+    script_id: getScriptId(),
+  });
+}, 500);
 
-  /**
-   * 设置处理流水线
-   */
-  processSettings: _.flow([
-    (rawSettings: any) => validateSettings(rawSettings),
-    (validSettings: any) => {
-      APlayerUtils.saveSettings(validSettings);
-      return validSettings;
-    },
-  ]),
-
-  /**
-   * 节流错误日志
-   */
-  logError: _.throttle((message: string, error?: any) => {
-    console.error(`[APlayer] ${message}:`, error);
-  }, 1000),
+/**
+ * 校验、规范化并保存设置
+ */
+const processSettings = (rawSettings: unknown): PlayerSettings => {
+  const settings = validateSettings(rawSettings);
+  saveSettings(settings);
+  return settings;
 };
 
 // 全局管理器实例

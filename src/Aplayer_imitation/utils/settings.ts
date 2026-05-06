@@ -26,7 +26,7 @@ export const PlayerSettingsSchema = z.object({
         name: z.string(),
         artist: z.string(),
         url: z.url(),
-        cover: z.url().optional(),
+        cover: z.url(),
       }),
     )
     .optional(),

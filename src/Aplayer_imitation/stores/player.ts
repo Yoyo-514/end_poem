@@ -4,6 +4,7 @@ import { DEFAULT_AUDIOS } from '../data/default-audios';
 import type { AudioTrack, PlayerState } from '../types';
 import { PlayOrder } from '../types/enums';
 import { getRandomIndex } from '../utils/audio';
+import type { PlayerSettings } from '../utils/settings';
 
 export const usePlayerStore = defineStore('player', () => {
   // 基础状态
@@ -184,30 +185,17 @@ export const usePlayerStore = defineStore('player', () => {
   };
 
   // 从脚本变量初始化设置
-  const initFromSettings = (settings: any) => {
-    if (settings.defaultVolume !== undefined) {
-      volume.value = settings.defaultVolume;
-      previousVolume.value = settings.defaultVolume;
-    }
-    if (settings.defaultOrder !== undefined) {
-      order.value = settings.defaultOrder;
-    }
-    if (settings.listFolded !== undefined) {
-      listFolded.value = settings.listFolded;
-    }
-    if (settings.isMinimized !== undefined) {
-      isMinimized.value = settings.isMinimized;
-    }
-    if (settings.autoPlay !== undefined) {
-      autoPlay.value = settings.autoPlay;
-    }
-    // 加载自定义歌曲列表
-    if (settings.customAudioList && Array.isArray(settings.customAudioList) && settings.customAudioList.length > 0) {
+  const initFromSettings = (settings: PlayerSettings) => {
+    volume.value = settings.defaultVolume;
+    previousVolume.value = settings.defaultVolume;
+    order.value = settings.defaultOrder;
+    listFolded.value = settings.listFolded;
+    isMinimized.value = settings.isMinimized;
+    autoPlay.value = settings.autoPlay;
+
+    if (settings.customAudioList?.length) {
       audioList.value = [...settings.customAudioList];
-      // 重置当前索引防止越界
-      if (currentIndex.value >= settings.customAudioList.length) {
-        currentIndex.value = 0;
-      }
+      currentIndex.value = 0;
     }
   };
 

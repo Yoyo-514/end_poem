@@ -17,9 +17,11 @@
           "pattern": "^-?\\d+(?:\\.\\d+)?:-?\\d+(?:\\.\\d+)?$"
         },
         "当前位置": {
+          "default": "",
           "type": "string"
         },
         "天气": {
+          "default": "",
           "type": "string"
         },
         "异常": {
@@ -110,6 +112,7 @@
               }
             },
             "姿态动作": {
+              "default": "",
               "type": "string"
             },
             "持有物品": {
@@ -168,9 +171,11 @@
               "type": "number"
             },
             "治愈进度": {
+              "default": 0,
               "type": "number"
             },
             "注入星尘稳定剂": {
+              "default": false,
               "type": "boolean"
             },
             "当前状态": {
@@ -214,6 +219,7 @@
               }
             },
             "姿态动作": {
+              "default": "",
               "type": "string"
             },
             "持有物品": {
@@ -413,6 +419,7 @@
           "type": "object",
           "properties": {
             "已在队伍": {
+              "default": false,
               "type": "boolean"
             },
             "身份": {
@@ -466,6 +473,7 @@
               }
             },
             "姿态动作": {
+              "default": "",
               "type": "string"
             },
             "持有物品": {
@@ -481,12 +489,15 @@
               "type": "object",
               "properties": {
                 "召唤": {
+                  "default": "",
                   "type": "string"
                 },
                 "净化": {
+                  "default": "",
                   "type": "string"
                 },
                 "祈祷": {
+                  "default": "",
                   "type": "string"
                 }
               },
@@ -527,6 +538,7 @@
                 "type": "object",
                 "properties": {
                   "desc": {
+                    "default": "",
                     "type": "string"
                   },
                   "灵魂能力": {
@@ -549,6 +561,7 @@
           "type": "object",
           "properties": {
             "已在队伍": {
+              "default": false,
               "type": "boolean"
             },
             "身份": {
@@ -619,6 +632,7 @@
               }
             },
             "姿态动作": {
+              "default": "",
               "type": "string"
             },
             "持有物品": {
@@ -676,6 +690,7 @@
           "type": "object",
           "properties": {
             "已在队伍": {
+              "default": false,
               "type": "boolean"
             },
             "身份": {
@@ -742,6 +757,7 @@
               }
             },
             "姿态动作": {
+              "default": "",
               "type": "string"
             },
             "持有物品": {
@@ -807,6 +823,7 @@
         "type": "object",
         "properties": {
           "身份": {
+            "default": "",
             "type": "string"
           },
           "信任值": {
@@ -814,9 +831,11 @@
             "type": "number"
           },
           "外观": {
+            "default": "",
             "type": "string"
           },
           "姿态动作": {
+            "default": "",
             "type": "string"
           },
           "持有物品": {
