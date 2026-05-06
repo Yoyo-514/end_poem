@@ -98,3 +98,57 @@ export function applyChangeLimitToValue(value: any, path: string, oldValue: any)
 
   return limitedValue;
 }
+
+/**
+ * 根据更新前后快照应用所有数值变化幅度限制
+ * @param stat_data - 更新后的stat_data对象
+ * @param statDataBeforeUpdate - 更新前的stat_data对象
+ */
+export function applyChangeLimitsFromSnapshot(
+  stat_data: Record<string, any>,
+  statDataBeforeUpdate?: Record<string, any>,
+): void {
+  if (!statDataBeforeUpdate) {
+    return;
+  }
+
+  const paths = collectLimitedNumberPaths(stat_data);
+
+  if (paths.length === 0) {
+    return;
+  }
+
+  console.log(`[变化幅度限制] 检查 ${paths.length} 个受限变量`);
+
+  for (const path of paths) {
+    const currentValue = _.get(stat_data, path);
+    const oldValue = _.get(statDataBeforeUpdate, path);
+    const limitedValue = applyChangeLimitToValue(currentValue, path, oldValue);
+
+    if (limitedValue !== currentValue) {
+      _.set(stat_data, path, limitedValue);
+      console.log(`[变化幅度限制] 已应用限制: ${path} = ${limitedValue}`);
+    }
+  }
+}
+
+/**
+ * 收集当前数据中需要应用变化幅度限制的数值路径
+ * @param value - 当前遍历值
+ * @param basePath - 当前路径
+ * @returns 受限数值路径列表
+ */
+function collectLimitedNumberPaths(value: any, basePath = ''): string[] {
+  if (typeof value === 'number') {
+    return getChangeLimitForPath(basePath) ? [basePath] : [];
+  }
+
+  if (!_.isPlainObject(value)) {
+    return [];
+  }
+
+  return _.flatMap(value, (childValue, key) => {
+    const path = basePath ? `${basePath}.${key}` : key;
+    return collectLimitedNumberPaths(childValue, path);
+  });
+}

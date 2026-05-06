@@ -50,33 +50,3 @@ export interface CharacterRecord {
   /** 离场时持有的物品 */
   离场时持有的物品: Record<string, any>;
 }
-
-/**
- * 待验证的变量更新信息
- */
-export interface PendingValidation {
-  /** 统计数据对象 */
-  stat_data: Record<string, any>;
-  /** 变量路径 */
-  path: string;
-  /** 旧值 */
-  oldValue: any;
-  /** 新值 */
-  newValue: any;
-}
-
-/**
- * MVU 事件处理函数参数类型
- */
-export interface MVUEventParams {
-  /** 变量对象 */
-  variables?: Record<string, any>;
-  /** 统计数据 */
-  stat_data?: Record<string, any>;
-  /** 变量路径 */
-  path?: string;
-  /** 旧值 */
-  oldValue?: any;
-  /** 新值 */
-  newValue?: any;
-}
