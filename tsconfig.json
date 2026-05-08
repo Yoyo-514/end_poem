@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["jquery", "jqueryui", "lodash", "toastr", "type-fest", "yaml", "zod"],
+    "types": ["jquery", "lodash", "toastr", "yaml", "zod"],
     "target": "ESNext",
     "module": "ESNext",
     "outDir": "dist",

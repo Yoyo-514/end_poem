@@ -13,7 +13,6 @@ import { Server } from 'socket.io';
 import TerserPlugin from 'terser-webpack-plugin';
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin';
 import unpluginAutoImport from 'unplugin-auto-import/webpack';
-import { VueUseComponentsResolver, VueUseDirectiveResolver } from 'unplugin-vue-components/resolvers';
 import unpluginVueComponents from 'unplugin-vue-components/webpack';
 import { VueLoaderPlugin } from 'vue-loader';
 import webpack from 'webpack';
@@ -274,7 +273,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
             },
           ].concat(
             entry.html === undefined
-              ? <any[]>[
+              ? ([
                   {
                     test: /\.vue\.s[ac]ss$/,
                     use: [
@@ -309,8 +308,8 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
                     use: ['style-loader', { loader: 'css-loader', options: { url: false } }, 'postcss-loader'],
                     exclude: /node_modules/,
                   },
-                ]
-              : <any[]>[
+                ] as any[])
+              : ([
                   {
                     test: /\.s(a|c)ss$/,
                     use: [
@@ -330,7 +329,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
                     ],
                     exclude: /node_modules/,
                   },
-                ],
+                ] as any[]),
           ),
         },
       ],
@@ -374,9 +373,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
             'vue',
             'pinia',
             '@vueuse/core',
-            { from: 'dedent', imports: [['default', 'dedent']] },
             { from: 'klona', imports: ['klona'] },
-            { from: 'vue-final-modal', imports: ['useModal'] },
             { from: 'zod', imports: ['z'] },
           ],
         }),
@@ -384,7 +381,6 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
           dts: true,
           syncMode: 'overwrite',
           // globs: ['src/panel/component/*.vue'],
-          resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],
         }),
         new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
         new webpack.DefinePlugin({
@@ -463,23 +459,21 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         return callback();
       }
 
-      const builtin = ['vue3-pixi', 'vue-demi'];
+      const builtin = ['vue-demi'];
       if (builtin.includes(request)) {
         return callback();
       }
-      if (argv.mode !== 'production' && ['vue', 'pixi'].some(key => request.includes(key))) {
+      if (argv.mode !== 'production' && request.includes('vue')) {
         return callback();
       }
       const global = {
         jquery: '$',
         lodash: '_',
-        showdown: 'showdown',
         toastr: 'toastr',
         vue: 'Vue',
         'vue-router': 'VueRouter',
         yaml: 'YAML',
         zod: 'z',
-        'pixi.js': 'PIXI',
       };
       if (request in global) {
         return callback(null, 'var ' + global[request as keyof typeof global]);
