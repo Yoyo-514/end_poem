@@ -1,13 +1,13 @@
 export const formatPlotProgress = (plotProgress: string): string => {
-  const normalizedProgress = plotProgress.trim().toLowerCase();
-  if (!normalizedProgress.startsWith('v')) {
+  const match = plotProgress
+    .trim()
+    .toLowerCase()
+    .match(/^v(\d+)s(\d+)$/);
+
+  if (!match) {
     return plotProgress;
   }
 
-  const chapterText = normalizedProgress.slice(1);
-  if (!Number.isFinite(Number(chapterText))) {
-    return plotProgress;
-  }
-
-  return `第 ${chapterText} 章`;
+  const [, chapter, scene] = match;
+  return `第${chapter}章场景${scene}`;
 };

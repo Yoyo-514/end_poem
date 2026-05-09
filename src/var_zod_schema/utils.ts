@@ -15,8 +15,12 @@ export const uniqueArrayWith =
   (arr: T[]): T[] =>
     _.uniq([...arr, ...required]);
 
+/** 将浮点数四舍五入到指定小数位，保持 number 类型并舍去尾随 0 */
+export const roundFloat = (digits: number) => (val: number) =>
+  Number.isInteger(val) ? val : Number(val.toFixed(digits));
+
 /** 将浮点数四舍五入到三位小数，保持 number 类型并舍去尾随 0 */
-export const roundFloatToThreeDecimals = (val: number) => (Number.isInteger(val) ? val : Number(val.toFixed(3)));
+export const roundFloatToThreeDecimals = roundFloat(3);
 
 /** 数值范围限制 transform */
 export const clamp = (min: number, max: number) => (val: number) => _.clamp(val, min, max);
@@ -118,8 +122,8 @@ export const uniqueStrArrayWith = (defaults: string[], required: string[]) =>
 /**
  * 范围限制数值 schema
  */
-export const clampedNum = (defaultVal: number, min: number, max: number) =>
-  z.coerce.number().prefault(defaultVal).transform(clamp(min, max)).transform(roundFloatToThreeDecimals);
+export const clampedNum = (defaultVal: number, min: number, max: number, digits = 3) =>
+  z.coerce.number().prefault(defaultVal).transform(clamp(min, max)).transform(roundFloat(digits));
 
 /**
  * 灵魂对象 schema

@@ -27,7 +27,7 @@ export const GlobalInfoSchema = z
 
 export const PlotRecordSchema = z
   .object({
-    剧情进度: z.templateLiteral(['v', z.coerce.number()]).prefault('v1'),
+    剧情进度: z.templateLiteral(['v', z.coerce.number(), 's', z.coerce.number()]).prefault('v1s1'),
     剧情节点记录: uniqueStrArray(),
     significant_impact: z.record(z.string(), z.string()).prefault({}),
   })

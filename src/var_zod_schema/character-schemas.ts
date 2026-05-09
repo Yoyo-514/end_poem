@@ -184,7 +184,7 @@ export const SpecialCharactersSchema = z
         身份: uniqueStrArrayWith(['被诅咒的孩子'], ['被诅咒的孩子']),
         因子: lockedStr('猫'),
         依赖度: clampedNum(0.01, -1, 1),
-        模因侵蚀率: clampedNum(0.358, 0, 1),
+        模因侵蚀率: clampedNum(0.358, 0, 1, 4),
         当前状态: uniqueStrArray(),
         外观: z
           .object({
@@ -232,7 +232,7 @@ export const SpecialCharactersSchema = z
         身份: uniqueStrArrayWith(['被诅咒的孩子', '恶魔之子'], ['被诅咒的孩子', '恶魔之子']),
         因子: lockedStr('螳螂'),
         认可度: clampedNum(0.01, -1, 1),
-        模因侵蚀率: clampedNum(0.168, 0, 1),
+        模因侵蚀率: clampedNum(0.168, 0, 1, 4),
         当前状态: uniqueStrArray(),
         外观: z
           .object({
