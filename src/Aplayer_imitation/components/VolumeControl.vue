@@ -98,7 +98,7 @@ const handleMouseDown = (event: MouseEvent) => {
       <i :class="volumeIconClass"></i>
     </button>
     <div class="aplayer-volume-bar-wrap">
-      <div class="aplayer-volume-bar" ref="volumeBarRef" @mousedown="handleMouseDown" @click="handleVolumeBarClick">
+      <div ref="volumeBarRef" class="aplayer-volume-bar" @mousedown="handleMouseDown" @click="handleVolumeBarClick">
         <div class="aplayer-volume" :style="{ height: `${volumePercent}%` }"></div>
       </div>
     </div>

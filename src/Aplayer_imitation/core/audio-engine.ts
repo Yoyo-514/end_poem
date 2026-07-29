@@ -7,12 +7,30 @@ import { formatTime } from '../utils/audio';
  */
 export class AudioEngine {
   private readonly audio: HTMLAudioElement;
-  private readonly eventListeners: Map<string, Function[]> = new Map();
+  private readonly eventListeners: Map<string, Array<(data?: unknown) => void>> = new Map();
 
   constructor() {
-    this.audio = new Audio();
+    this.audio = this.createAudioElement();
     this.audio.preload = 'auto';
     this.bindAudioEvents();
+  }
+
+  /**
+   * 在酒馆主页面创建音频元素，避免 Android WebView 限制隐藏脚本 iframe 的媒体加载
+   */
+  private createAudioElement(): HTMLAudioElement {
+    try {
+      const audio = window.parent.document.createElement('audio');
+      audio.controls = false;
+      audio.setAttribute('aria-hidden', 'true');
+      window.parent.document.body.append(audio);
+      return audio;
+    } catch (error) {
+      console.warn('[APlayer] 无法在酒馆主页面创建音频元素，回退到脚本 iframe:', error);
+      const audio = document.createElement('audio');
+      document.body.append(audio);
+      return audio;
+    }
   }
 
   /**
@@ -40,7 +58,7 @@ export class AudioEngine {
   /**
    * 事件监听
    */
-  on(event: PlayerEvent, callback: Function): void {
+  on(event: PlayerEvent, callback: (data?: unknown) => void): void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
     }
@@ -50,7 +68,7 @@ export class AudioEngine {
   /**
    * 移除事件监听
    */
-  off(event: PlayerEvent, callback?: Function): void {
+  off(event: PlayerEvent, callback?: (data?: unknown) => void): void {
     if (!this.eventListeners.has(event)) return;
 
     if (callback) {
@@ -85,9 +103,6 @@ export class AudioEngine {
       this.audio.removeAttribute('src');
       this.audio.load();
 
-      // 设置新音频源
-      this.audio.src = track.url;
-
       const onCanPlay = () => {
         this.audio.removeEventListener('canplay', onCanPlay);
         this.audio.removeEventListener('error', onError);
@@ -97,12 +112,37 @@ export class AudioEngine {
       const onError = (_e: Event) => {
         this.audio.removeEventListener('canplay', onCanPlay);
         this.audio.removeEventListener('error', onError);
-        reject(new Error(`音频加载失败: ${track.name}`));
+        const mediaError = this.audio.error;
+        const code = mediaError?.code ?? 0;
+        const message = mediaError?.message || this.getMediaErrorMessage(code);
+        reject(new Error(`音频加载失败: ${track.name} (MediaError ${code}: ${message})`));
       };
 
       this.audio.addEventListener('canplay', onCanPlay, { once: true });
       this.audio.addEventListener('error', onError, { once: true });
+
+      // 先绑定事件再设置音源，避免部分 Android WebView 丢失快速触发的错误事件
+      this.audio.src = track.url;
+      this.audio.load();
     });
+  }
+
+  /**
+   * 获取媒体错误的可读描述
+   */
+  private getMediaErrorMessage(code: number): string {
+    switch (code) {
+      case 1: // MEDIA_ERR_ABORTED
+        return '媒体加载被中止';
+      case 2: // MEDIA_ERR_NETWORK
+        return '媒体下载发生网络错误';
+      case 3: // MEDIA_ERR_DECODE
+        return '媒体解码失败';
+      case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+        return '媒体来源不受支持或被安全策略拦截';
+      default:
+        return '未知媒体错误';
+    }
   }
 
   /**
@@ -202,6 +242,21 @@ export class AudioEngine {
   }
 
   /**
+   * 获取底层媒体错误，供宿主输出 Android WebView 的真实失败原因
+   */
+  get mediaError(): MediaError | null {
+    return this.audio.error;
+  }
+
+  get readyState(): number {
+    return this.audio.readyState;
+  }
+
+  get networkState(): number {
+    return this.audio.networkState;
+  }
+
+  /**
    * 获取格式化的当前时间
    */
   get formattedCurrentTime(): FormattedTime {
@@ -222,6 +277,7 @@ export class AudioEngine {
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
+    this.audio.remove();
     this.eventListeners.clear();
   }
 }

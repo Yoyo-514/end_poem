@@ -33,7 +33,7 @@ const handleSeek = (event: MouseEvent) => {
 
 <template>
   <div class="aplayer-bar-wrap" @click="handleSeek">
-    <div class="aplayer-bar" ref="barRef">
+    <div ref="barRef" class="aplayer-bar">
       <div class="aplayer-loaded" :style="{ width: `${bufferedProgress}%` }"></div>
       <div class="aplayer-played" :style="{ width: `${playedProgress}%` }">
         <span class="aplayer-thumb"></span>

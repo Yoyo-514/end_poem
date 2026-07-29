@@ -27,8 +27,8 @@ defineEmits<{
       :title="isPlaying ? '暂停' : '播放'"
       @click="isPlaying ? $emit('pause') : $emit('play')"
     >
-      <i class="fas fa-play" v-show="!isPlaying"></i>
-      <i class="fas fa-pause" v-show="isPlaying"></i>
+      <i v-show="!isPlaying" class="fas fa-play"></i>
+      <i v-show="isPlaying" class="fas fa-pause"></i>
     </button>
 
     <button class="aplayer-next aplayer-control-btn" :disabled="!canSkipNext" title="下一首" @click="$emit('next')">

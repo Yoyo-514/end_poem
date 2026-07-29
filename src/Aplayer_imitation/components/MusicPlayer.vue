@@ -33,6 +33,8 @@ const {
 // 音频引擎
 let audioEngine: AudioEngine;
 let retryHandler: RetryHandler;
+let errorSkipTimer: ReturnType<typeof setTimeout> | undefined;
+const failedTrackUrls = new Set<string>();
 
 // 错误处理
 const errorHandler = useErrorHandler();
@@ -113,6 +115,25 @@ const pause = () => {
   console.log('[APlayer] 已暂停播放');
 };
 
+/**
+ * 加载失败后延迟切歌；全部曲目均失败时停止，避免列表无限循环
+ */
+const scheduleNextAfterError = (failedUrl: string) => {
+  if (audioList.value.every(track => failedTrackUrls.has(track.url))) {
+    playerStore.setPlaying(false);
+    console.error('[APlayer] 播放列表中的音频均加载失败，已停止自动切歌');
+    return;
+  }
+
+  clearTimeout(errorSkipTimer);
+  errorSkipTimer = setTimeout(() => {
+    errorSkipTimer = undefined;
+    if (playerStore.currentTrack?.url === failedUrl) {
+      void handleNext();
+    }
+  }, 1500);
+};
+
 const togglePlay = () => {
   if (isPlaying.value) {
     pause();
@@ -153,6 +174,7 @@ const loadCurrentTrack = async () => {
 
     // 记录已加载的音频URL
     currentlyLoadedTrackUrl.value = track.url;
+    failedTrackUrls.delete(track.url);
     setLoadingState(LoadingState.SUCCESS);
     console.log('[APlayer] 音频加载成功:', track.name);
   } catch (error) {
@@ -160,9 +182,10 @@ const loadCurrentTrack = async () => {
     handleAudioLoadError(track.name, track.url, error);
     setLoadingState(LoadingState.ERROR);
     currentlyLoadedTrackUrl.value = ''; // 清除加载状态
+    failedTrackUrls.add(track.url);
 
     // 尝试播放下一首
-    setTimeout(() => handleNext(), 1500);
+    scheduleNextAfterError(track.url);
   } finally {
     isTrackChanging.value = false;
   }
@@ -289,13 +312,25 @@ onMounted(() => {
 
   audioEngine.on(PlayerEvent.ENDED, handleAudioEnded);
 
-  audioEngine.on(PlayerEvent.ERROR, (error: Event) => {
-    console.error('[APlayer] 音频播放错误:', error);
+  audioEngine.on(PlayerEvent.ERROR, () => {
+    const mediaError = audioEngine.mediaError;
+    console.error('[APlayer] 音频媒体错误:', {
+      code: mediaError?.code ?? 0,
+      message: mediaError?.message || '未知媒体错误',
+      readyState: audioEngine.readyState,
+      networkState: audioEngine.networkState,
+      track: currentTrack.value,
+    });
+
+    // 加载流程会负责重试和切歌，避免同一个 error 被重复处理
+    if (isTrackChanging.value) return;
+
     if (currentTrack.value) {
+      const error = new Error(`MediaError ${mediaError?.code ?? 0}: ${mediaError?.message || '媒体播放期间发生错误'}`);
       handleAudioLoadError(currentTrack.value.name, currentTrack.value.url, error);
+      failedTrackUrls.add(currentTrack.value.url);
+      scheduleNextAfterError(currentTrack.value.url);
     }
-    // 自动跳到下一首
-    setTimeout(() => handleNext(), 1500);
   });
 
   // 设置初始音量
@@ -313,6 +348,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearTimeout(errorSkipTimer);
   if (audioEngine) {
     audioEngine.destroy();
   }
@@ -353,8 +389,8 @@ watch(volume, newVolume => {
       <!-- 封面和播放按钮 -->
       <div class="aplayer-pic" :class="{ 'aplayer-pic-playing': isPlaying }" @click="togglePlay">
         <div class="aplayer-button" :class="{ 'aplayer-button-playing': isPlaying }">
-          <i class="fas fa-play" v-show="!isPlaying"></i>
-          <i class="fas fa-pause" v-show="isPlaying"></i>
+          <i v-show="!isPlaying" class="fas fa-play"></i>
+          <i v-show="isPlaying" class="fas fa-pause"></i>
         </div>
         <img class="aplayer-pic-img" :src="currentTrack?.cover" :alt="currentTrack?.name || '封面'" />
       </div>

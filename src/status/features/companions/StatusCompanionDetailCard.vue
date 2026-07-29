@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { StatusCompanionProfile, StatusCompanionSection } from './companion-presenters';
+import type {
+  StatusCompanionProfile,
+  StatusCompanionSection,
+  StatusCompanionTheme,
+} from './companion-presenters';
 
 interface Props {
   profile: StatusCompanionProfile;
@@ -9,6 +13,15 @@ defineProps<Props>();
 
 const maskText = '████████';
 
+const themeClasses: Record<StatusCompanionTheme, string> = {
+  traveler: 'companion-detail--traveler',
+  mio: 'companion-detail--mio',
+  shiro: 'companion-detail--shiro',
+  kohina: 'companion-detail--kohina',
+  midori: 'companion-detail--midori',
+  lily: 'companion-detail--lily',
+};
+
 const shouldShowSection = (profile: StatusCompanionProfile, section: StatusCompanionSection): boolean => {
   return profile.locked || section.entries.length > 0;
 };
@@ -17,7 +30,7 @@ const shouldShowSection = (profile: StatusCompanionProfile, section: StatusCompa
 <template>
   <article
     class="companion-detail"
-    :class="[`companion-detail--${profile.theme}`, { 'companion-detail--locked': profile.locked }]"
+    :class="[themeClasses[profile.theme], { 'companion-detail--locked': profile.locked }]"
   >
     <img
       v-if="profile.portrait && !profile.mystery"

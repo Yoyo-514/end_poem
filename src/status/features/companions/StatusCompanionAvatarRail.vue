@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StatusCompanionId, StatusCompanionProfile } from './companion-presenters';
+import type { StatusCompanionId, StatusCompanionProfile, StatusCompanionTheme } from './companion-presenters';
 
 interface Props {
   profiles: StatusCompanionProfile[];
@@ -12,6 +12,15 @@ interface Emits {
 
 defineProps<Props>();
 defineEmits<Emits>();
+
+const themeClasses: Record<StatusCompanionTheme, string> = {
+  traveler: 'companion-avatar-rail__item--traveler',
+  mio: 'companion-avatar-rail__item--mio',
+  shiro: 'companion-avatar-rail__item--shiro',
+  kohina: 'companion-avatar-rail__item--kohina',
+  midori: 'companion-avatar-rail__item--midori',
+  lily: 'companion-avatar-rail__item--lily',
+};
 </script>
 
 <template>
@@ -21,7 +30,7 @@ defineEmits<Emits>();
       :key="profile.id"
       class="companion-avatar-rail__item"
       :class="[
-        `companion-avatar-rail__item--${profile.theme}`,
+        themeClasses[profile.theme],
         {
           'companion-avatar-rail__item--active': activeId === profile.id,
           'companion-avatar-rail__item--locked': profile.locked,
