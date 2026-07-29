@@ -51,20 +51,18 @@ export const usePlayerStore = defineStore('player', () => {
   });
 
   // 获取完整状态
-  const playerState = computed(
-    (): PlayerState => ({
-      currentIndex: currentIndex.value,
-      isPlaying: isPlaying.value,
-      volume: volume.value,
-      previousVolume: previousVolume.value,
-      order: order.value,
-      isMinimized: isMinimized.value,
-      listFolded: listFolded.value,
-      currentTime: currentTime.value,
-      duration: duration.value,
-      buffered: buffered.value,
-    }),
-  );
+  const playerState = computed((): PlayerState => ({
+    currentIndex: currentIndex.value,
+    isPlaying: isPlaying.value,
+    volume: volume.value,
+    previousVolume: previousVolume.value,
+    order: order.value,
+    isMinimized: isMinimized.value,
+    listFolded: listFolded.value,
+    currentTime: currentTime.value,
+    duration: duration.value,
+    buffered: buffered.value,
+  }));
 
   // Actions
   const setAudioList = (tracks: AudioTrack[]) => {

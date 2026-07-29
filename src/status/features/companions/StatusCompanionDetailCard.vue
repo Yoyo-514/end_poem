@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type {
-  StatusCompanionProfile,
-  StatusCompanionSection,
-  StatusCompanionTheme,
-} from './companion-presenters';
+import type { StatusCompanionProfile, StatusCompanionSection, StatusCompanionTheme } from './companion-presenters';
 
 interface Props {
   profile: StatusCompanionProfile;
